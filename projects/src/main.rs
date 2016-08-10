@@ -1,6 +1,7 @@
 fn main() {
     println!("Hello, world!");
-    println!("Pi(100): {}", pi(100))
+    println!("Pi(100): {}", pi(100));
+    println!("e(10000000000): {}", e(10000000000));
 }
 
 fn pi(n: u64) -> f64 {
@@ -14,4 +15,9 @@ fn pi(n: u64) -> f64 {
             sum + if x % 4.0 == 0.0 {-d} else {d}
         });
     result
+}
+
+fn e(n: u64) -> f64 {
+    let n = n as f64;
+    (1.0 + 1.0/n).powf(n)
 }
