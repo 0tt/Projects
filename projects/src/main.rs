@@ -1,4 +1,6 @@
 use std::io;
+use std::str::FromStr;
+use std::fmt::Display;
 
 fn main() {
     println!("Hello, world!");
@@ -7,6 +9,7 @@ fn main() {
     println!("fib(10): {:?}", fib(10));
     println!("prime time of your life: {:?}", factors(17285));
     primes();
+    tile();
 }
 
 fn pi(n: u64) -> f64 {
@@ -62,6 +65,7 @@ fn factors(mut num: u64) -> Vec<u64> {
     }
     factors
 }
+
 fn primes() {
     let mut primes = vec![];
     loop {
@@ -86,4 +90,20 @@ fn primes() {
             break;
         }
     }
+}
+
+fn read_type<T>() -> T  where T: Default + FromStr, <T as FromStr>::Err: Display {
+    let mut input = String::new();
+    io::stdin().read_line(&mut input).expect("Failed to read line");
+    input.trim().parse().unwrap_or_else(|e| {
+        println!("{}", e);
+        T::default()
+    })
+}
+fn tile() {
+    println!("Enter the width, height, and per-square-unit cost:");
+    let w = read_type::<u64>();
+    let h = read_type::<u64>();
+    let cost = read_type::<f64>();
+    println!("Your total cost is: {}", (w * h) as f64 * cost);
 }
