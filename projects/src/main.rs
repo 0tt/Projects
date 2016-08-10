@@ -2,7 +2,8 @@ fn main() {
     println!("Hello, world!");
     println!("Pi(100): {}", pi(100));
     println!("terrible e(10000000000): {}", e(10000000000));
-    println!("fib(10): {:?}", fib(10))
+    println!("fib(10): {:?}", fib(10));
+    println!("prime time of your life: {:?}", factors(123712));
 }
 
 fn pi(n: u64) -> f64 {
@@ -31,4 +32,30 @@ fn fib(n: u64) -> Vec<u64> {
         result.push(sum);
     }
     result
+}
+
+fn factors(mut num: u64) -> Vec<u64> {
+    // Generate primes up to num
+    let mut primes = vec![];
+    'primer: for i in 2..num + 1 {
+        for prime in &primes {
+            if i % prime == 0 {
+                continue 'primer;
+            }
+        }
+        primes.push(i)
+    }
+    let mut factors = vec![];
+    'x: loop {
+        for prime in &primes {
+            if num % prime == 0 {
+                factors.push(*prime);
+                // num /= prime; // Not implemented yet
+                num = num / prime;
+                if num == 1 {break 'x};
+                break;
+            }
+        }
+    }
+    factors
 }
