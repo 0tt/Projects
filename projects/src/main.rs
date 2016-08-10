@@ -1,9 +1,12 @@
+use std::io;
+
 fn main() {
     println!("Hello, world!");
     println!("Pi(100): {}", pi(100));
     println!("terrible e(10000000000): {}", e(10000000000));
     println!("fib(10): {:?}", fib(10));
-    println!("prime time of your life: {:?}", factors(123712));
+    println!("prime time of your life: {:?}", factors(17285));
+    primes();
 }
 
 fn pi(n: u64) -> f64 {
@@ -58,4 +61,29 @@ fn factors(mut num: u64) -> Vec<u64> {
         }
     }
     factors
+}
+fn primes() {
+    let mut primes = vec![];
+    loop {
+        println!("More primes?");
+        let mut input = String::new();
+        io::stdin().read_line(&mut input).expect("Failed to read line");
+        input = input.trim().to_string();
+        if input.len() > 0 {
+            let len = primes.len();
+            let start = if len > 0 {primes[len - 1]} else {2};
+            'primer: for i in start.. {
+                for prime in &primes {
+                    if i % prime == 0 {
+                        continue 'primer;
+                    }
+                }
+                primes.push(i);
+                println!("New prime! {}", i);
+                break;
+            }
+        } else {
+            break;
+        }
+    }
 }
