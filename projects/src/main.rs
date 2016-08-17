@@ -10,6 +10,7 @@ fn main() {
     println!("prime time of your life: {:?}", factors(17285));
     primes();
     tile();
+    mortgage();
 }
 
 fn pi(n: u64) -> f64 {
@@ -106,4 +107,13 @@ fn tile() {
     let h = read_type::<u64>();
     let cost = read_type::<f64>();
     println!("Your total cost is: {}", (w * h) as f64 * cost);
+}
+
+fn mortgage() {
+    println!("Enter the interest percentage, number of monthly payments, and ammount borrowed.");
+    let r = read_type::<f64>() / 100.0;
+    let n = read_type::<u64>() as f64;
+    let p = read_type::<f64>();
+    let c = (r * p) / (1.0 - (1.0 + r).powf(-n));
+    println!("{} {} {} {}", c, r, n, p)
 }
