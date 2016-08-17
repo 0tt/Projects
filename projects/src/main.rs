@@ -10,7 +10,8 @@ fn main() {
     println!("prime time of your life: {:?}", factors(17285));
     primes();
     tile();
-    mortgage();
+    // mortgage();
+    change();
 }
 
 fn pi(n: u64) -> f64 {
@@ -101,6 +102,7 @@ fn read_type<T>() -> T  where T: Default + FromStr, <T as FromStr>::Err: Display
         T::default()
     })
 }
+
 fn tile() {
     println!("Enter the width, height, and per-square-unit cost:");
     let w = read_type::<u64>();
@@ -109,6 +111,7 @@ fn tile() {
     println!("Your total cost is: {}", (w * h) as f64 * cost);
 }
 
+#[allow(dead_code)]
 fn mortgage() {
     println!("Enter the interest percentage, number of monthly payments, and ammount borrowed.");
     let r = read_type::<f64>() / 100.0;
@@ -116,4 +119,26 @@ fn mortgage() {
     let p = read_type::<f64>();
     let c = (r * p) / (1.0 - (1.0 + r).powf(-n));
     println!("{} {} {} {}", c, r, n, p)
+}
+
+fn change() {
+    println!("Enter the cost of a product and the amount of money given:");
+    let cost = read_type::<f64>();
+    let tender = read_type::<f64>();
+    let mut change = ((tender - cost) * 100.0) as i64; // in terms of pennies (not tenths of pennies!)
+    if change < 0 {
+        println!("You didn't pay enough money!");
+        return
+    }
+    let dollars = change / 100;
+    change %= 100;
+    let quarters = change / 25;
+    change %= 25;
+    let dimes = change / 10;
+    change %= 10;
+    let nickels = change /  5;
+    change %= 5;
+    let pennies = change;
+
+    println!("Your total change is {} dollars, {} quarters, {} dimes, {} nickels, and {} pennies.", dollars, quarters, dimes, nickels, pennies);
 }
