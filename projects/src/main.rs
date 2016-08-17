@@ -12,6 +12,11 @@ fn main() {
     tile();
     // mortgage();
     change();
+    assert_eq!(decimal_to_binary_lazy(49), "0b110001");
+    assert_eq!(decimal_to_binary(49), "0b110001");
+    assert_eq!(decimal_to_binary(-987), "-0b1111011011");
+    assert_eq!(binary_to_decimal("0b110001"), 49);
+    assert_eq!(binary_to_decimal("-0b1111011011"), -987);
 }
 
 fn pi(n: u64) -> f64 {
@@ -141,4 +146,48 @@ fn change() {
     let pennies = change;
 
     println!("Your total change is {} dollars, {} quarters, {} dimes, {} nickels, and {} pennies.", dollars, quarters, dimes, nickels, pennies);
+}
+
+fn decimal_to_binary_lazy(num: i64) -> String {
+    let sign = if num.is_negative() { "-" } else { "" }.to_string();
+    let num = num.abs() as u64;
+    let mut working = num;
+    (0..(num/2))
+    .map(|x| 2u64.pow(x as u32))
+    .filter(|&x| x <= num) // replace filter with take_while?
+    .rev()
+    .map(|x| {
+        if working >= x {
+            working -= x;
+            "1"
+        } else {
+            "0"
+        }
+    })
+    .fold(sign + "0b", |sum, x| sum + &x)
+}
+fn decimal_to_binary(num: i64) -> String {
+    let sign = if num.is_negative() { "-" } else { "" }.to_string();
+    let mut result = String::new();
+    let mut working = num.abs() as u64;
+
+    while working > 0 {
+        result = (working % 2).to_string() + &result;
+        working /= 2;
+    }
+
+    sign + "0b" + &result
+}
+fn binary_to_decimal(bin: &str) -> i64 {
+    let mut result = 0i64;
+    let mut sign = 1;
+    let len = bin.len();
+    for (n, c) in bin.chars().enumerate() {
+        if n < 2 {
+            if c == '-' { sign = -1 };
+        } else if c == '1' {
+            result += 2u64.pow((len - n) as u32 - 1) as i64;
+        }
+    }
+    result * sign
 }
