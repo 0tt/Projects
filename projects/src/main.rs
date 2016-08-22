@@ -17,6 +17,7 @@ fn main() {
     assert_eq!(decimal_to_binary(-987), "-0b1111011011");
     assert_eq!(binary_to_decimal("0b110001"), 49);
     assert_eq!(binary_to_decimal("-0b1111011011"), -987);
+    calculator();
 }
 
 fn pi(n: u64) -> f64 {
@@ -190,4 +191,31 @@ fn binary_to_decimal(bin: &str) -> i64 {
         }
     }
     result * sign
+}
+
+fn calculator() {
+    let mut answer: f64;
+    loop {
+        println!("Continue calculating?");
+        let a = read_type::<String>();
+        if a == "" { break };
+        println!("Enter first operand:");
+        let op1 = read_type::<f64>();
+        println!("Enter operation:");
+        let op = read_type::<String>();
+        println!("Enter second operand:");
+        let op2 = read_type::<f64>();
+
+        answer = match &*op {
+            "*" => op1 * op2,
+            "/" => op1 / op2,
+            "+" => op1 + op2,
+            "-" => op1 - op1,
+            _ => {
+                println!("Invalid!");
+                break;
+            },
+        };
+        println!("{} {} {} = {}", op1, op, op2, answer);
+    }
 }
