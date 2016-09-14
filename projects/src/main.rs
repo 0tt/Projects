@@ -1,6 +1,8 @@
 use std::io;
 use std::str::FromStr;
 use std::fmt::Display;
+use std::ops::Add;
+use std::ops::Mul;
 
 fn main() {
     println!("Hello, world!");
@@ -18,6 +20,7 @@ fn main() {
     assert_eq!(binary_to_decimal("0b110001"), 49);
     assert_eq!(binary_to_decimal("-0b1111011011"), -987);
     calculator();
+    zipf();
 }
 
 fn pi(n: u64) -> f64 {
@@ -218,4 +221,105 @@ fn calculator() {
         };
         println!("{} {} {} = {}", op1, op, op2, answer);
     }
+}
+
+// negative numbers are for chumps
+fn gcd(a: u64, b: u64) -> u64 {
+    if b != 0 {
+        gcd(b, a % b)
+    } else {
+        a
+    }
+}
+
+// prioritize not overflowing over speed
+fn lcm(x: u64, y: u64) -> (u64, u64, u64) {
+    let mut a: u64;
+    let b: u64;
+    if x > y {
+        a = x;
+        b = y;
+    } else {
+        a = y;
+        b = x;
+    }
+    loop {
+        a += a;
+        if a % b == 0 {
+            return (a, a / x, a / y);
+        }
+    }
+}
+
+#[derive(Clone, Copy, Default, Debug)]
+struct Fraction {
+    numerator: u64,
+    denominator: u64,
+    sign: bool,
+}
+impl Fraction {
+    fn reduce(&self) -> Fraction {
+        let cd = gcd(self.numerator, self.denominator);
+        if cd != 1 {
+            Fraction {
+                numerator: self.numerator / cd,
+                denominator: self.denominator / cd,
+                sign: self.sign,
+            }
+        } else {
+            *self
+        }
+    }
+    fn new(numerator: i64, denominator: i64) -> Fraction {
+        Fraction {
+            numerator: numerator.abs() as u64,
+            denominator: denominator.abs() as u64,
+            sign: !(numerator.is_negative() | denominator.is_negative()),
+        }
+    }
+}
+impl Mul for Fraction {
+    type Output = Fraction;
+
+    fn mul(self, _rhs: Fraction) -> Fraction {
+        Fraction {
+            numerator: self.numerator * _rhs.numerator,
+            denominator: self.denominator * _rhs.denominator,
+            sign: !(self.sign | _rhs.sign),
+        }
+    }
+}
+impl Add for Fraction {
+    type Output = Fraction;
+
+    fn add(self, _rhs: Fraction) -> Fraction {
+        let l = self;
+        let r = _rhs;
+        let (cm, lc, rc) = lcm(l.denominator, r.denominator);
+        Fraction {
+            numerator: l.numerator * lc + r.numerator * rc,
+            denominator: cm,
+            sign: if self.sign | _rhs.sign {
+                if self.sign {
+                    l.numerator * lc > r.numerator * rc
+                } else {
+                    r.numerator * rc > l.numerator * lc
+                }
+            } else {
+                self.sign
+            },
+        }.reduce()
+    }
+}
+
+fn zipf() {
+    println!("How many iterations do you want to generate zipf?");
+    let iter = read_type::<u64>();
+    let mut total = Fraction::new(0, 1);
+    let mut last = Fraction::new(1, 1);
+    for i in 1 .. iter+1 {
+        last = last * Fraction::new(1, i as i64);
+        total = total + last;
+    }
+    println!("{:?}", total);
 }
