@@ -311,8 +311,8 @@ impl Add for Fraction {
         }.reduce()
     }
 }
-
-fn zipf() {
+#[allow(dead_code)]
+fn zipf_fraction() {
     println!("How many iterations do you want to generate zipf?");
     let iter = read_type::<u64>();
     let mut total = Fraction::new(0, 1);
@@ -322,4 +322,22 @@ fn zipf() {
         total = total + last;
     }
     println!("{:?}", total);
+}
+fn zipf() {
+    println!("How many iterations do you want to generate zipf?");
+    let iter = read_type::<u64>();
+    // let mut total = Fraction::new(0, 1);
+    // let mut last = Fraction::new(1, 1);
+    // for i in 1 .. iter+1 {
+    //     last = last * Fraction::new(1, i as i64);
+    //     total = total + last;
+    // }
+    // println!("{:?}", total);
+    let mut total = 0f64;
+    let mut frac = 1f64;
+    for i in 1 .. iter + 1 {
+        frac = frac / (i as f64);
+        total = total + frac;
+    }
+    println!("{}", total);
 }
