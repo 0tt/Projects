@@ -1,8 +1,15 @@
+extern crate curl;
+extern crate serde_json;
+
 use std::io;
 use std::str::FromStr;
 use std::fmt::Display;
 use std::ops::Add;
 use std::ops::Mul;
+use std::env;
+
+use curl::easy::Easy;
+use serde_json::Value;
 
 fn main() {
     println!("Hello, world!");
@@ -21,6 +28,7 @@ fn main() {
     assert_eq!(binary_to_decimal("-0b1111011011"), -987);
     calculator();
     zipf();
+    cities();
 }
 
 fn pi(n: u64) -> f64 {
@@ -340,4 +348,105 @@ fn zipf() {
         total = total + frac;
     }
     println!("{}", total);
+}
+
+#[derive(Debug, Default)]
+struct Location {
+    address: String,
+    coordinates: (f64, f64),
+}
+fn find_city(name: &str) -> Option<Location> {
+    let key = &match env::var("MAPS_API_KEY") {
+        Ok(val) => val,
+        Err(e) => {
+            println!("bad key: {}", e);
+            e.to_string()
+        },
+    };
+    let mut easy = Easy::new();
+    easy.url(&format!("https://maps.googleapis.com/maps/api/geocode/json?key={}&address={}", key, name.replace(" ", "+"))).unwrap();
+    //let mut response;
+    let mut response = Vec::new();
+    {
+        let mut transfer = easy.transfer();
+        transfer.write_function(|data| {
+            // this is a vector of bytes; use from_utf8
+            response.extend_from_slice(data);
+            println!("chunk received!");
+            Ok(data.len())
+        }).unwrap();
+        transfer.perform().unwrap(); // program halts while above code collects chunks of data
+    }
+    let response_code = easy.response_code().unwrap();
+    if response_code == 200 {
+        let response = std::str::from_utf8(&response).unwrap(); // closure might outlive current function! (it doesn't)
+        // println!("response {}", response);
+        let data: Value = serde_json::from_str(response).unwrap();
+        let obj = data.as_object().unwrap();
+        let results = obj.get("results").unwrap().as_array().unwrap();
+        if results.len() > 0 {
+            let result = results[0].as_object().unwrap();
+            let address = result.get("formatted_address").unwrap().as_str().unwrap();
+            let location = result.get("geometry").unwrap().as_object().unwrap().get("location").unwrap().as_object().unwrap();
+            let coordinates = (location.get("lat").unwrap().as_f64().unwrap(), location.get("lng").unwrap().as_f64().unwrap());
+            // println!("Address: {}", address);
+            // println!("Coordinates: {:#?}", coordinates);
+            Some(Location {
+                address: address.to_string(),
+                coordinates: coordinates,
+            })
+        } else {
+            println!("no results!");
+            None
+        }
+    } else {
+        println!("bad response code! {}", response_code);
+        None
+    }
+}
+fn spherical_law_of_cosines(c1: (f64, f64), c2: (f64, f64)) -> f64 {
+    let (lat1, lng1) = c1;
+    let (lat2, lng2) = c2;
+    // d = acos( sin φ1 ⋅ sin φ2 + cos φ1 ⋅ cos φ2 ⋅ cos Δλ ) ⋅ R
+    let phi1 = lat1.to_radians();
+    let phi2 = lat2.to_radians();
+    let deltalambda = (lng2 - lng1).to_radians();
+    let r = 6371e3;
+
+    (phi1.sin() * phi2.sin() + phi1.cos() * phi2.cos() * deltalambda.cos()).acos() * r
+}
+fn cities() {
+    let mut city1 = Location::default();
+    let city2; // man I don't even know, compiler yells at me
+    let mut stage = true;
+    loop {
+        println!("Enter a city:");
+        let input = read_type::<String>();
+        if input.len() == 0 && stage {
+            println!("Skipping.");
+            return;
+        }
+        match find_city(&input) {
+            Some(c) => {
+                println!("Is this your intended location? (y/n) {}", c.address);
+                match &*read_type::<String>() {
+                    "y" | "Y" => {
+                        if stage {
+                            println!("City 1 selected.");
+                            city1 = c;
+                            stage = false;
+                        } else {
+                            println!("City 2 selected.");
+                            city2 = c;
+                            break;
+                        }
+                    },
+                    _ => {},
+                }
+            },
+            None => println!("City not found! Try again."),
+        }
+    }
+    println!("City 1: {:?}\nCity 2: {:?}", city1, city2);
+    println!("Distance between the two: {:.*}km (±22km)", 0, spherical_law_of_cosines(city1.coordinates, city2.coordinates)/1000f64);
 }
